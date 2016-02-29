@@ -1,0 +1,11 @@
+
+fsamp = 8000;
+nyquist = fsamp/2;
+
+order = 4;
+fpass1 = 180;
+fpass2 = 450;
+stop_atten = 23;
+pass_ripple = 0.4;
+
+[b,a] = ellip(order/2, pass_ripple, stop_atten, [fpass1 fpass2], 'bandpass');
