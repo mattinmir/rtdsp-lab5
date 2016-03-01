@@ -92,8 +92,7 @@ void init_HWI(void);
 void ISR_AIC(void);        
 void tustin(void);
 void direct_form_2(void);
-/********************************** Main routine ************************************/
-void main(){    
+/********************************** Main routine ************************************/void main(){    
 int i=0;
 // initialize board and the audio port
  	init_hardware();
@@ -174,12 +173,17 @@ void tustin(void)
 void direct_form_2(void)
 {
 	int i = BUFSIZE - 1;
-	for (; i > 0; i--)
+	double left = 0;
+	double right = 0;
+	for (; i > 1; i--)
+	{
 		x[i] = x[i-1];
+		left -= a[i]*x[i];
+		right += b[i]*x[i];
+	}
 	
-	x[0] = sample;
-	
-	output = sample* b[0];
-	for (i = 1; i< BUFSIZE; i++)
-		output += x[i]*(b[i]-a[i]*b[0]);
+	left += sample;
+	output = right + b[0]*left;
+	x[0] = left;
 }
+
