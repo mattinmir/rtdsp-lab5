@@ -76,6 +76,7 @@ double yt[2] = {0, 0};
 
 double x[BUFSIZE];
 
+
 // Input read from signal generator
 short sample = 0; 
 
@@ -92,7 +93,10 @@ void init_HWI(void);
 void ISR_AIC(void);        
 void tustin(void);
 void direct_form_2(void);
-/********************************** Main routine ************************************/void main(){    
+void direct_form_2_transpose(void);
+void direct_form_2_transposeshitone(void);
+/********************************** Main routine ************************************/
+void main(){    
 int i=0;
 // initialize board and the audio port
  	init_hardware();
@@ -104,7 +108,9 @@ int i=0;
 	
 	for (; i < BUFSIZE; i++)
 		x[i] = 0;
-
+		
+		
+	
   /* loop indefinitely, waiting for interrupts */  					
 	while(1){}
   
@@ -154,7 +160,7 @@ void ISR_AIC(void)
 {
 	sample = mono_read_16Bit(); 
 		
-	direct_form_2();
+	direct_form_2_transpose();
 	
 	mono_write_16Bit(output); 
 }
@@ -187,3 +193,32 @@ void direct_form_2(void)
 	x[0] = left;
 }
 
+void direct_form_2_transpose(void)
+{
+	int i = BUFSIZE - 1;
+	double y = output;
+	
+	for (; i > 1; i--)
+		x[i] = x[i-1];
+	
+	x[0] = sample;
+	
+	output = x[0]*b[0];
+	for(; i < BUFSIZE; i++)
+		output += x[i]*b[i] + y*a[i];
+		
+	
+}
+/*
+void direct_form_2_transposeshitone(void)
+{
+	int i = 0;
+
+	output = b[0]*sample;
+	
+	for(; <BUFSIZE; i++)
+	{
+		output += b[i]*x[i] - 
+
+	}
+}*/
