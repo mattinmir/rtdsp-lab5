@@ -2,7 +2,7 @@
 fsamp = 8000;
 nyquist = fsamp/2;
 
-order = 4;
+order = 8;
 fpass1 = 180/nyquist;
 fpass2 = 450/nyquist;
 stop_atten = 23;
