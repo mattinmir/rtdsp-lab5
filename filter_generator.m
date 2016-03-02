@@ -2,7 +2,7 @@
 fsamp = 8000;
 nyquist = fsamp/2;
 
-order = 8;
+order = 10;
 fpass1 = 180/nyquist;
 fpass2 = 450/nyquist;
 stop_atten = 23;
@@ -32,3 +32,4 @@ fprintf(fileID,dataa);
 fprintf (fileID, '};');
 fclose(fileID);
 
+freqz(b,a)
