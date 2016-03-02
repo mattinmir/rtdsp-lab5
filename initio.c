@@ -108,8 +108,6 @@ int i=0;
 	
 	for (; i < BUFSIZE; i++)
 		x[i] = 0;
-		
-		
 	
   /* loop indefinitely, waiting for interrupts */  					
 	while(1){}
@@ -162,7 +160,7 @@ void ISR_AIC(void)
 		
 	direct_form_2_transpose();
 	
-	mono_write_16Bit(output); 
+	mono_write_16Bit(output);  
 }
 
 void tustin(void)
@@ -195,6 +193,19 @@ void direct_form_2(void)
 
 void direct_form_2_transpose(void)
 {
+	int i = 0;
+	
+	output = x[0] + b[0]*sample;
+	
+	for(;i<BUFSIZE-2;i++){
+		x[i] = x[i+1] + b[i+1]*sample - a[i+1]*output;
+	}
+	
+	x[BUFSIZE-2] = b[BUFSIZE-1]*sample - a[BUFSIZE-1]*output;
+	
+
+	
+	/*
 	int i = BUFSIZE - 1;
 	double y = output;
 	
@@ -206,7 +217,7 @@ void direct_form_2_transpose(void)
 	output = x[0]*b[0];
 	for(; i < BUFSIZE; i++)
 		output += x[i]*b[i] + y*a[i];
-		
+		*/
 	
 }
 /*
