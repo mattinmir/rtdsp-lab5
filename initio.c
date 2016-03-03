@@ -129,14 +129,14 @@ void init_hardware()
 	MCBSP_FSETS(RCR1, RWDLEN1, 32BIT);	
 
 	/* Configures interrupt to activate on each consecutive available 32 bits 
-	from Audio port hence an interrupt is generated for each L & R sample pair */	
+	from Audio port hence an interrupt is generated for each L & R sample pair */ 	
 	MCBSP_FSETS(SPCR1, RINTM, FRM);
 
 	/* These commands do the same thing as above but applied to data transfers to  
 	the audio port */
 	MCBSP_FSETS(XCR1, XWDLEN1, 32BIT);	
 	MCBSP_FSETS(SPCR1, XINTM, FRM);	
-}
+} 
 
 /********************************** init_HWI() **************************************/  
 void init_HWI(void)
@@ -160,7 +160,7 @@ void ISR_AIC(void)
 	sample = mono_read_16Bit(); 
 		
 	// Perform IIR
-	direct_form_2(); 
+	direct_form_2_transpose(); 
 	
 	// Write out sample
 	mono_write_16Bit(output); 
@@ -193,7 +193,7 @@ void direct_form_2(void)
 	double right = 0;
 	
 	
-	for (; i > 1; i--)
+	for (; i > 0; i--)
 	{
 		// Shift values back in buffer
 		x[i] = x[i-1];
