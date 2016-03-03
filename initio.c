@@ -37,9 +37,8 @@
 // Filter Coefficients stored in array 'double b[] = {......}'
 #include "coef.txt"
 
-
+// Get buffer length based from coefficient array
 #define ORDER sizeof(a)/sizeof(a[0]) - 1
-
 #define BUFSIZE ORDER + 1
 
 /******************************* Global declarations ********************************/
@@ -68,27 +67,28 @@ DSK6713_AIC23_Config Config = { \
 DSK6713_AIC23_CodecHandle H_Codec;
 
 
-// Delay buffer
+// Delay buffer (Tustin)
 short xt[2] = {0, 0};
 
-// Output of filter
+// Output of filter (Tustin)
 double yt[2] = {0, 0}; 
 
+// Buffer to hold inputs 
 double x[BUFSIZE];
-
 
 // Input read from signal generator
 short sample = 0; 
 
+// Value stored for output 
 short output = 0;
 
 double C = 0.000001;
 double R = 1000;
 double T = 1.0/8000;
-
+ 
 
 /******************************* Function prototypes ********************************/
-void init_hardware(void);     
+void init_hardware(void);      
 void init_HWI(void);          
 void ISR_AIC(void);        
 void tustin(void);
@@ -156,37 +156,57 @@ void init_HWI(void)
  
 void ISR_AIC(void)
 {
+	// Read in sample 
 	sample = mono_read_16Bit(); 
 		
-	direct_form_2_transpose();
+	// Perform IIR
+	direct_form_2(); 
 	
-	mono_write_16Bit(output);  
+	// Write out sample
+	mono_write_16Bit(output); 
 }
 
 void tustin(void)
 {
+	// Shift samples along buffer
 	xt[1] = xt[0];
+	
+	// Read in new sample
 	xt[0] = sample;
 	
-	yt[0] = (xt[0])*(1/17) + xt[1] * 1/17 + yt[1] * 15/17;
-	yt[1] = yt[0];
-	output = (short)yt[0];
+	// Apply filter
+	yt[0] = (xt[0])*(1/17) + xt[1] * 1/17 + yt[1] * 15/17; 
 	
+	// Shift outputs along buffer
+	yt[1] = yt[0];
+	output = yt[0];
 }
 
 void direct_form_2(void)
 {
+	// Initialise iterator to the end of buffer 
 	int i = BUFSIZE - 1;
+	
+	// Variables to store values of left side adder (x[i]*-a[i]) 
+	// and right side adder (x[i]*b[i]) 
 	double left = 0;
 	double right = 0;
+	
+	
 	for (; i > 1; i--)
 	{
+		// Shift values back in buffer
 		x[i] = x[i-1];
+		
+		// Apply filter coefficients 
 		left -= a[i]*x[i];
 		right += b[i]*x[i];
 	}
 	
+	// Adding new sample to sum
 	left += sample;
+	
+	// Applying the final b[0] coefficient to the sum
 	output = right + b[0]*left;
 	x[0] = left;
 }
@@ -194,7 +214,6 @@ void direct_form_2(void)
 void direct_form_2_transpose(void)
 {
 	int i = 0;
-	
 	output = x[0] + b[0]*sample;
 	
 	for(;i<BUFSIZE-2;i++){
@@ -202,34 +221,4 @@ void direct_form_2_transpose(void)
 	}
 	
 	x[BUFSIZE-2] = b[BUFSIZE-1]*sample - a[BUFSIZE-1]*output;
-	
-
-	
-	/*
-	int i = BUFSIZE - 1;
-	double y = output;
-	
-	for (; i > 1; i--)
-		x[i] = x[i-1];
-	
-	x[0] = sample;
-	
-	output = x[0]*b[0];
-	for(; i < BUFSIZE; i++)
-		output += x[i]*b[i] + y*a[i];
-		*/
-	
 }
-/*
-void direct_form_2_transposeshitone(void)
-{
-	int i = 0;
-
-	output = b[0]*sample;
-	
-	for(; <BUFSIZE; i++)
-	{
-		output += b[i]*x[i] - 
-
-	}
-}*/
