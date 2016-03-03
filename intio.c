@@ -34,10 +34,10 @@
 // Some functions to help with writing/reading the audio ports when using interrupts.
 #include <helper_functions_ISR.h>
 
-// Filter Coefficients stored in array 'double b[] = {......}'
+// Filter Coefficients stored in arrays 'double a[] = {......}; double b[] = {......};'
 #include "coef.txt"
 
-// Get buffer length based from coefficient array
+// Get buffer length based on coefficient array
 #define ORDER sizeof(a)/sizeof(a[0]) - 1
 #define BUFSIZE ORDER + 1
 
@@ -66,7 +66,6 @@ DSK6713_AIC23_Config Config = { \
 // Codec handle:- a variable used to identify audio interface  
 DSK6713_AIC23_CodecHandle H_Codec;
 
-
 // Delay buffer (Tustin)
 short xt[2] = {0, 0};
 
@@ -82,12 +81,6 @@ double sample = 0;
 // Value stored for output 
 double output = 0;
 
-/*double C = 0.000001;
-double R = 1000;
-double T = 1.0/8000;
-*/
- 
-
 /******************************* Function prototypes ********************************/
 void init_hardware(void);      
 void init_HWI(void);          
@@ -95,22 +88,22 @@ void ISR_AIC(void);
 void tustin(void);
 void direct_form_2(void);
 void direct_form_2_transpose(void);
-void direct_form_2_transposeshitone(void);
+
 /********************************** Main routine ************************************/
-void main(){    
-int i=0;
-// initialize board and the audio port
- 	init_hardware();
-	
-  /* initialize hardware interrupts */
-	init_HWI();  
-	
-	// Zeroise Buffer	 		
-	
+void main()
+{    
+	// Zeroise Buffer
+	int i = 0;
 	for (; i < BUFSIZE; i++)
 		x[i] = 0;
 	
-  /* loop indefinitely, waiting for interrupts */  					
+	// initialize board and the audio port
+ 	init_hardware();
+	
+	 /* initialize hardware interrupts */
+	init_HWI();  
+	
+	 /* loop indefinitely, waiting for interrupts */  					
 	while(1){}
   
 }  
@@ -151,10 +144,7 @@ void init_HWI(void)
 
 /******************** WRITE YOUR INTERRUPT SERVICE ROUTINE HERE***********************/  
 
-/*
- * Convolves input with filter and outputs
- */
- 
+// Interrupt Service routine applies IIR filter to input
 void ISR_AIC(void)
 {
 	// Read in sample 
@@ -167,7 +157,7 @@ void ISR_AIC(void)
 	mono_write_16Bit(output); 
 }
 
-//Implementation of the first order IIR filter
+//Implementation of the first order IIR filter (RC Filter)
 void tustin(void)
 {
 	// Shift samples along buffer
@@ -181,9 +171,12 @@ void tustin(void)
 	
 	// Shift outputs along buffer
 	yt[1] = yt[0];
+	
+	// Set output value
 	output = yt[0];
 }
 
+// Direct form 2 Filter
 void direct_form_2(void)
 {
 	// Initialise iterator to the end of buffer 
@@ -205,22 +198,32 @@ void direct_form_2(void)
 		right += b[i]*x[i];
 	}
 	
-	// Adding new sample to sum
+	// Adding new sample to left adder
 	left += sample;
 	
 	// Applying the final b[0] coefficient to the sum
 	output = right + b[0]*left;
+	
+	// Start of array set to output of left adder
 	x[0] = left;
 }
 
+// Direct Form 2 Transpose filter
 void direct_form_2_transpose(void)
 {
 	int i = 0;
+	
+	// x[0] is the sum of the previous inputs that have had the filter coefficents 1-n applied to them 
 	output = x[0] + b[0]*sample;
 	
-	for(;i<BUFSIZE-2;i++){
-		x[i] = x[i+1] + b[i+1]*sample - a[i+1]*output;
-	}
+	// As seen in the diagram, each x[i] is the sum of the ouput of the i-1th adder, and the the ith a and b 
+	//coeffients applied to the new sample
 	
+	// Break at i < BUFSIZE-2 because last element (index BUFSIZE-1) is calclated slightly differently below 
+	for(; i < BUFSIZE - 2; i++)
+		x[i] = x[i+1] + b[i+1]*sample - a[i+1]*output;
+	
+	// Sligtly different calculation as there is no adder behind the last element, so it is just the sum of
+	// the (BUFSIZE-1)th element's coefficients applied to the new sample
 	x[BUFSIZE-2] = b[BUFSIZE-1]*sample - a[BUFSIZE-1]*output;
 }
