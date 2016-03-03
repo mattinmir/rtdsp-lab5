@@ -1,0 +1,32 @@
+%% IMPORT EXCEL VALUES IN RIGHT ORDER!!!!!!!!!!!!!!!!!!!!!!!###########################
+%%%%%%%%%%%
+R = 1e3;
+C= 1e-6;
+b = [1];
+a = [R*C 1];
+q = logspace(0,4);
+[h1, w1] = freqs(b,a,q);
+
+mag = abs(h1);
+semilogx(w1, db(abs(h1)));
+% loglog(w1, mag)
+grid on
+hold on
+semilogx(X3, Y3, 'Color' , 'r');
+hold on
+semilogx(X4,Y4, 'Color', 'g');
+xlabel('Frequency (Hz)');
+ylabel('Gain (dB)');
+legend('Ideal' , 'Actual' , '#NoFilter');
+
+s = tf('s');
+
+hs = 1/(s*R*C+1);
+fig = figure
+% bodeplot(hs)
+semilogx(w1, db(abs(h1)));
+title('Frequency Response for Ideal RC Filter');
+xlabe
+print(fig, 'IdealRCFreqresp', '-dpng');
+
+
