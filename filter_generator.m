@@ -1,8 +1,9 @@
-
+%% IMPORT EXCEL VALUES IN RIGHT ORDER!!!!!!!!!!!!!!!!!!!!!!!###########################
+%%%%%%%%%%%
 fsamp = 8000;
 nyquist = fsamp/2;
 
-order = 10;
+order = 12;
 fpass1 = 180/nyquist;
 fpass2 = 450/nyquist;
 stop_atten = 23;
@@ -32,4 +33,22 @@ fprintf(fileID,dataa);
 fprintf (fileID, '};');
 fclose(fileID);
 
+[h,w] = freqz(b,a, 2^12);
+plot((w*(fsamp))/(2*pi), db(abs(h)), 'Color', 'b')
+xlabel('Frequency (Hz)');
+ylabel('Gain (dB)');
+hold on
+plot (X1, Y1, 'Color' , 'r')
+legend('Ideal', 'Actual');
+
+figure
+semilogx(X7, Y7-Y8)
+xlabel('Frequency (Hz)');
+ylabel('Gain (dB)');
+
+figure
 freqz(b,a)
+
+figure
+zplane(b,a)
+
