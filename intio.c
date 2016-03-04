@@ -216,7 +216,7 @@ void direct_form_2_transpose(void)
 	// x[0] is the sum of the previous inputs that have had the filter coefficents 1-n applied to them 
 	output = x[0] + b[0]*sample;
 	
-	// As seen in the diagram, each x[i] is the sum of the ouput of the i-1th adder, and the the ith a and b 
+	// As seen in the diagram, each x[i] is the sum of the ouput of the i+1th adder, and the the i+1th a and b 
 	//coeffients applied to the new sample
 	
 	// Break at i < BUFSIZE-2 because last element (index BUFSIZE-1) is calclated slightly differently below 
@@ -224,6 +224,6 @@ void direct_form_2_transpose(void)
 		x[i] = x[i+1] + b[i+1]*sample - a[i+1]*output;
 	
 	// Sligtly different calculation as there is no adder behind the last element, so it is just the sum of
-	// the (BUFSIZE-1)th element's coefficients applied to the new sample
+	// the (BUFSIZE-1)th coefficients applied to the new sample
 	x[BUFSIZE-2] = b[BUFSIZE-1]*sample - a[BUFSIZE-1]*output;
 }
